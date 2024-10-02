@@ -1,93 +1,56 @@
+# Blog Content Analyzer
 
-# Blog Analyzer - Ferramenta de Análise de Posts de Blog
+## Proposta de Valor
+Esta solução tem o objetivo de ajudar as empresas a entender, documentar e organizar seu conteúdo dentro da estratégia de SEO. Além disso, a ferramenta pode ser usada para analisar concorrentes, determinando tópicos de interesse, intenção de posts, e em que estágio do funil de vendas o conteúdo se encontra.
 
-Este projeto realiza a extração e análise de posts de blogs WordPress, gerando insights úteis para estratégias de marketing de conteúdo. Ele classifica os posts de acordo com a intenção (informativa, transacional ou comercial) e o estágio do funil de vendas (Topo, Meio ou Fundo de Funil). Além disso, os tópicos principais são extraídos para facilitar a compreensão do conteúdo abordado.
+## Visão Geral
+O Blog Content Analyzer é um aplicativo que permite extrair posts de um blog WordPress e analisar seus conteúdos com base em tópicos, intenção e estágio do funil de vendas. Ele faz uso de bibliotecas de NLP (Natural Language Processing) para processar e interpretar o texto, auxiliando na otimização e estruturação de estratégias de conteúdo.
 
 ## Funcionalidades
+- **Extração de Posts**: O aplicativo extrai os posts do blog via API do WordPress.
+- **Limpeza de Conteúdo HTML**: O conteúdo HTML dos posts é processado e limpo para análise textual.
+- **Análise de Tópicos**: Os principais tópicos de cada post são extraídos com base na relevância.
+- **Determinação da Intenção**: Classifica a intenção de cada post como Informativa, Transacional ou Comercial.
+- **Estágio do Funil**: Determina se o conteúdo está no topo (ToFu), meio (MoFu) ou fundo (BoFu) do funil de vendas.
 
-- **Extração de posts**: Obtém posts de blogs WordPress via API.
-- **Análise de intenção**: Determina a intenção do post (informativa, transacional, comercial).
-- **Classificação de funil de vendas**: Identifica o estágio do funil de vendas (ToFu, MoFu, BoFu).
-- **Geração de CSV**: Exporta os resultados em um arquivo CSV para análise posterior.
+## Requisitos
+- **Python 3.8+**
+- **Bibliotecas Necessárias**: As bibliotecas podem ser instaladas a partir do arquivo `requirements.txt`. O projeto faz uso de `requests`, `beautifulsoup4`, `nltk`, `tqdm` e outras dependências.
 
-## Pré-requisitos
+## Instalação e Uso
 
-- **Python 3.x**
-- **Virtualenv** (opcional, mas recomendado para isolar dependências)
-- **NLTK** (Natural Language Toolkit) para análise de texto
-- **Bibliotecas Python**:
-  - `requests`
-  - `beautifulsoup4`
-  - `nltk`
-  - `tqdm`
+### 1. Clonar o Repositório
+Primeiro, clone este repositório em sua máquina local:
+```bash
+git clone https://github.com/seu-usuario/blog-content-analyzer.git
+```
 
-## Instalação
+### 2. Instalar Dependências
+Navegue até o diretório do projeto e instale as dependências:
+```bash
+cd blog-content-analyzer
+pip install -r requirements.txt
+```
 
-1. **Clonar o repositório**:
-   ```bash
-   git clone https://github.com/emanuellvieira/wp-blog-analyzer-v1
-   cd wp-blog-analyzer-v1
-   ```
+### 3. Configuração do NLTK
+Ao executar o script pela primeira vez, o NLTK irá baixar os pacotes necessários, como `stopwords` e `punkt`.
 
-2. **Configurar o ambiente virtual (opcional, mas recomendado)**:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # Linux/Mac
-   .\venv\Scripts\activate  # Windows
-   ```
+### 4. Executar o Aplicativo
+Para iniciar a análise do blog, basta executar o arquivo `main.py`. O app vai extrair todos os posts do blog e gerar o arquivo `output.csv` com os resultados da análise.
 
-3. **Instalar as dependências**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+```bash
+python main.py
+```
 
-4. **Configurar NLTK**:
-   Execute o seguinte comando para baixar os pacotes necessários do NLTK:
-   ```bash
-   python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords'); nltk.download('averaged_perceptron_tagger'); nltk.download('maxent_ne_chunker'); nltk.download('words')"
-   ```
+O arquivo CSV resultante incluirá os campos:
+- **Título**: Título do post.
+- **Top Tópicos**: Principais tópicos extraídos do conteúdo.
+- **Intenção**: Intenção do conteúdo (Informativa, Transacional, Comercial).
+- **Estágio do Funil**: Estágio do conteúdo no funil de vendas (ToFu, MoFu, BoFu).
 
-## Configuração
+### 5. Personalização com Arquivo de Configuração (Próxima Atualização)
+Em breve, você poderá configurar a URL do blog, o contexto da sua empresa e o ICP (Ideal Customer Profile) em um arquivo de configuração para análises ainda mais personalizadas.
 
-1. **Arquivo de Configuração (Futuro)**: Em versões futuras, um arquivo de configuração permitirá inserir a URL do blog, contexto da empresa, e o ICP (Ideal Customer Profile) para análises mais robustas e personalizadas.
-
-## Uso
-
-1. **Executar a aplicação**:
-   No terminal, execute o seguinte comando para rodar o aplicativo:
-   ```bash
-   python main.py
-   ```
-
-2. **Resultado**:
-   - O script irá realizar a extração dos posts de um blog WordPress via API, fazer a análise e, por fim, salvar os resultados em um arquivo CSV (`output.csv`).
-   - O CSV incluirá o título do post, tópicos principais, intenção do conteúdo, e o estágio do funil de vendas.
-
-3. **Customização da URL do Blog**:
-   - O blog que você deseja analisar deve ser configurado na variável `blog_url` dentro do arquivo `main.py`.
-   ```python
-   blog_url = "https://seu-blog.com"
-   ```
-
-## Output
-
-Os resultados serão salvos em um arquivo `output.csv` com a seguinte estrutura:
-
-- **title**: Título do post.
-- **top_topics**: Tópicos principais do conteúdo.
-- **intent**: Intenção do post (informativa, transacional, comercial).
-- **funnel_stage**: Estágio do funil de vendas (ToFu, MoFu, BoFu).
-
-## Futuras Implementações
-
-- **Análise personalizada**: Adicionar um arquivo de configuração para incluir a URL do blog, contexto da empresa e do ICP.
-- **Modelo de interpretação de texto**: Melhorar a análise de intenção e estágio do funil com modelos de NLP mais avançados.
-- **Relatórios detalhados**: Geração de relatórios e gráficos para visualização de insights.
-
-## Contribuição
-
-Fique à vontade para abrir issues e pull requests para melhorias no projeto. Toda contribuição é bem-vinda!
-
-## Licença
-
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+## Créditos
+Este projeto foi desenvolvido por **Emanuell Vieira**, especialista em Martech, para ajudar empresas e profissionais a otimizar suas estratégias de conteúdo digital.  
+Visite meu site: [emanuellvieira.com](https://emanuellvieira.com)
