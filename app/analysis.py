@@ -1,96 +1,83 @@
-from sklearn.feature_extraction.text import TfidfVectorizer
+import nltk
+from nltk.corpus import stopwords
 from collections import Counter
-from nltk.tokenize import word_tokenize, sent_tokenize
 
-def extract_topics_tfidf(posts):
+# Funções auxiliares importadas
+from app.cleaning import clean_html_content
+
+nltk.download('stopwords')
+
+# Stopwords em português
+stop_words = set(stopwords.words('portuguese'))
+
+def tokenize_and_remove_stopwords(text):
+    tokens = nltk.word_tokenize(text)
+    tokens = [word.lower() for word in tokens if word.isalnum()]
+    tokens = [word for word in tokens if word not in stop_words]
+    return tokens
+
+def extract_topics(posts):
     """
-    Função para extrair os principais tópicos de cada post usando TF-IDF.
-
-    Args:
-        posts (list): Lista de conteúdos dos posts.
-
-    Returns:
-        dict: Dicionário com o título do post como chave e os principais tópicos como valor.
+    Extrai os principais tópicos dos posts processados.
     """
-    corpus = [post['content'] for post in posts]
-    titles = [post['title'] for post in posts]
+    cleaned_posts = [clean_html_content(post['content']) for post in posts]
+    processed_posts = [tokenize_and_remove_stopwords(post) for post in cleaned_posts]
+    top_topics = [Counter(post).most_common(10) for post in processed_posts]
+    return [[topic for topic, freq in topics] for topics in top_topics]
 
-    vectorizer = TfidfVectorizer(stop_words='english', max_features=10)
-    tfidf_matrix = vectorizer.fit_transform(corpus)
-
-    feature_names = vectorizer.get_feature_names_out()
-    topics = {}
-
-    for idx, title in enumerate(titles):
-        tfidf_scores = tfidf_matrix[idx].T.todense()
-        top_indices = tfidf_scores.argsort().flatten().tolist()[::-1]
-        top_terms = [feature_names[i] for i in top_indices[:5]]
-        topics[title] = top_terms
-
-    return topics
-
-def classify_intent(content):
+def classify_intent(post_content):
     """
-    Função para classificar a intenção do post.
-
-    Args:
-        content (str): O conteúdo textual do post.
-
-    Returns:
-        str: A intenção do post (informativa, transacional, navegacional).
+    Classifica a intenção do post com base no conteúdo.
     """
-    if "comprar" in content or "preço" in content:
-        return "Transacional"
-    elif "como" in content or "dicas" in content:
-        return "Informativa"
+    informativa_keywords = ['como', 'guia', 'dicas', 'informações', 'entenda', 'aprenda']
+    transacional_keywords = ['compre', 'adquira', 'oferta', 'produto', 'promoção']
+    comercial_keywords = ['avaliação', 'produto', 'preço', 'serviço', 'comparativo']
+
+    post_tokens = tokenize_and_remove_stopwords(post_content)
+
+    if any(keyword in post_tokens for keyword in transacional_keywords):
+        return 'Transacional'
+    elif any(keyword in post_tokens for keyword in comercial_keywords):
+        return 'Comercial'
+    elif any(keyword in post_tokens for keyword in informativa_keywords):
+        return 'Informativa'
     else:
-        return "Navegacional"
+        return 'Indeterminado'
 
-def classify_funnel_stage(content):
+def classify_funnel_stage(post_content):
     """
-    Função para classificar o estágio do funil de vendas ao qual o post se destina.
-
-    Args:
-        content (str): O conteúdo textual do post.
-
-    Returns:
-        str: O nível do funil (ToFu, MoFu, BoFu).
+    Classifica o estágio do funil de vendas com base no conteúdo.
     """
-    if "introdutório" in content or "o que é" in content:
-        return "Topo do Funil (ToFu)"
-    elif "solução" in content or "como resolver" in content:
-        return "Meio do Funil (MoFu)"
-    elif "testemunho" in content or "depoimento" in content:
-        return "Fundo do Funil (BoFu)"
+    topo_keywords = ['o que é', 'dicas', 'introdução', 'guia', 'começar']
+    meio_keywords = ['como', 'benefícios', 'vantagens', 'processo', 'melhor']
+    fundo_keywords = ['compre', 'adquira', 'serviço', 'produto', 'contrate']
+
+    post_tokens = tokenize_and_remove_stopwords(post_content)
+
+    if any(keyword in post_tokens for keyword in fundo_keywords):
+        return 'Fundo do Funil (BoFu)'
+    elif any(keyword in post_tokens for keyword in meio_keywords):
+        return 'Meio do Funil (MoFu)'
+    elif any(keyword in post_tokens for keyword in topo_keywords):
+        return 'Topo do Funil (ToFu)'
     else:
-        return "Indeterminado"
+        return 'Indeterminado'
 
 def analyze_posts(posts):
     """
-    Função para realizar uma análise completa dos posts.
-
-    Args:
-        posts (list): Lista de dicionários contendo os dados dos posts.
-
-    Returns:
-        list: Lista de resultados de análise contendo tópicos, intenção, e estágio do funil.
+    Analisa os posts para extrair tópicos, classificar intenção e estágio do funil.
     """
-    analysis_results = []
-    topics = extract_topics_tfidf(posts)
-
+    results = []
     for post in posts:
-        title = post['title']
-        content = post['content']
-        intent = classify_intent(content)
-        funnel_stage = classify_funnel_stage(content)
-        top_topics = topics[title]
+        post_content = clean_html_content(post['content'])
+        top_topics = extract_topics([post])[0]  # Extrair tópicos para o post atual
+        intent = classify_intent(post_content)  # Classificar a intenção
+        funnel_stage = classify_funnel_stage(post_content)  # Classificar estágio do funil
 
-        result = {
-            "title": title,
+        results.append({
+            "title": post['title'],
             "top_topics": top_topics,
             "intent": intent,
             "funnel_stage": funnel_stage
-        }
-        analysis_results.append(result)
-
-    return analysis_results
+        })
+    return results

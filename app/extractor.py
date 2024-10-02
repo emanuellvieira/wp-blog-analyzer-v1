@@ -1,56 +1,41 @@
 import requests
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from bs4 import BeautifulSoup
 
-def fetch_page(url, params):
+def clean_html(raw_html):
     """
-    Função para fazer a requisição de uma página específica de posts.
+    Remove as tags HTML do conteúdo bruto e retorna apenas o texto.
     """
-    try:
-        response = requests.get(url, params=params, verify=False, timeout=10)
-        response.raise_for_status()  # Levanta um erro se a requisição não for bem-sucedida
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        print(f"Erro ao acessar página {params['page']}: {e}")
-        return []
+    soup = BeautifulSoup(raw_html, "html.parser")
+    return soup.get_text()
 
-def get_blog_posts(base_url, num_posts=100):
+def get_all_blog_posts(blog_url):
     """
-    Função para buscar posts de um blog WordPress via API, com requisições paralelas.
-
-    Args:
-        base_url (str): URL base do blog WordPress.
-        num_posts (int): Número de posts a serem buscados no total.
-
-    Returns:
-        list: Lista de dicionários contendo título e conteúdo dos posts.
+    Faz uma requisição para a API do WordPress para obter todos os posts do blog.
+    Limpa o HTML dos posts e retorna uma lista com títulos e conteúdos limpos.
     """
-    url = f"{base_url}/wp-json/wp/v2/posts"
-    posts = []
-    total_posts = 0
-    per_page = 20  # Definindo 20 posts por página para reduzir o número de requisições
+    all_posts = []
+    page = 1
 
-    print("Iniciando extração dos posts...")
+    while True:
+        try:
+            response = requests.get(f"{blog_url}/wp-json/wp/v2/posts?per_page=100&page={page}", verify=False)
+            response.raise_for_status()
+            posts = response.json()
 
-    # Calcular o número de páginas necessárias
-    total_pages = (num_posts // per_page) + 1
-
-    with ThreadPoolExecutor(max_workers=5) as executor:
-        futures = []
-
-        for page in range(1, total_pages + 1):
-            params = {"per_page": per_page, "page": page}
-            futures.append(executor.submit(fetch_page, url, params))
-
-        for future in as_completed(futures):
-            result = future.result()
-            if result:
-                posts.extend(result)
-                total_posts += len(result)
-                print(f"Total de posts até agora: {total_posts}")
-
-            # Limitar ao número máximo de posts desejados
-            if total_posts >= num_posts:
+            # Se a resposta não contiver posts, saímos do loop
+            if not posts:
                 break
 
-    print(f"Extração concluída. Total de posts extraídos: {total_posts}")
-    return [{"title": post['title']['rendered'], "content": post['content']['rendered']} for post in posts[:num_posts]]
+            for post in posts:
+                title = post.get('title', {}).get('rendered', '')
+                content = post.get('content', {}).get('rendered', '')
+                clean_content = clean_html(content)
+                all_posts.append({'title': title, 'content': clean_content})
+
+            page += 1  # Avança para a próxima página
+
+        except requests.exceptions.RequestException as e:
+            print(f"Erro ao extrair os posts: {e}")
+            break
+
+    return all_posts
