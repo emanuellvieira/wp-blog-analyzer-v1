@@ -28,7 +28,7 @@ def save_to_csv(results, filename="output.csv"):
         print("Nenhum dado disponível para salvar.")
 
 if __name__ == "__main__":    
-    blog_url = "https://nfe.io/blog"  # Ou a URL do blog que deseja analisar
+    blog_url = "https://seu-blog.com"  # Ou a URL do blog que deseja analisar
     print("Extraindo posts do blog...")
 
     # Extrair todos os posts

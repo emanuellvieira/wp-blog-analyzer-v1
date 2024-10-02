@@ -6,7 +6,7 @@ from app.helpers import setup_nltk
 setup_nltk()
 
 if __name__ == "__main__":
-    blog_url = "https://nfe.io/blog"
+    blog_url = "https://seu-blog.com"
     
     # Utilize a função correta para pegar todos os posts
     posts = get_all_blog_posts(blog_url)
