@@ -1,0 +1,13 @@
+{
+    "blog_url": "https://nfe.io/blog",
+    "company_context": {
+        "industry": "Tecnologia",
+        "focus": "Automatização de processos",
+        "goal": "Educar o público sobre a importância da automação empresarial"
+    },
+    "ideal_customer_profile": {
+        "sector": "Pequenas e médias empresas",
+        "revenue_range": "500k-10M",
+        "key_challenges": "Gestão financeira, otimização de processos, aumento de eficiência"
+    }
+}

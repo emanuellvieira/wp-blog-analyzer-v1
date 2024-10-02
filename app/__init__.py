@@ -6,9 +6,7 @@ from app.helpers import setup_nltk
 setup_nltk()
 
 if __name__ == "__main__":
-    blog_url = "https://seu-blog.com"
-    
-    # Utilize a função correta para pegar todos os posts
+    blog_url = "https://nfe.io/blog"
     posts = get_all_blog_posts(blog_url)
     
     if posts:
@@ -17,8 +15,8 @@ if __name__ == "__main__":
         for result in results:
             print(f"Título: {result['title']}")
             print(f"Tópicos Principais: {result['top_topics']}")
-            print(f"Intenção: {result['intent']} (Indeterminado se não for possível)")
-            print(f"Nível do Funil: {result['funnel_stage']} (Indeterminado se não for possível)")
+            print(f"Intenção: {result['intent']}")
+            print(f"Nível do Funil: {result['funnel_stage']}")
             print("\n")
     else:
         print("Nenhum post encontrado.")

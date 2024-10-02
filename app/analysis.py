@@ -1,83 +1,76 @@
 import nltk
 from nltk.corpus import stopwords
 from collections import Counter
+from app.cleaning import clean_text
 
-# Funções auxiliares importadas
-from app.cleaning import clean_html_content
-
+# Certifique-se de ter baixado o NLTK stopwords
 nltk.download('stopwords')
-
-# Stopwords em português
-stop_words = set(stopwords.words('portuguese'))
-
-def tokenize_and_remove_stopwords(text):
-    tokens = nltk.word_tokenize(text)
-    tokens = [word.lower() for word in tokens if word.isalnum()]
-    tokens = [word for word in tokens if word not in stop_words]
-    return tokens
 
 def extract_topics(posts):
     """
-    Extrai os principais tópicos dos posts processados.
+    Extrai os principais tópicos de cada post usando uma abordagem de contagem de palavras.
+    Remove stopwords para focar nos termos relevantes.
     """
-    cleaned_posts = [clean_html_content(post['content']) for post in posts]
-    processed_posts = [tokenize_and_remove_stopwords(post) for post in cleaned_posts]
-    top_topics = [Counter(post).most_common(10) for post in processed_posts]
-    return [[topic for topic, freq in topics] for topics in top_topics]
+    all_words = []
+    stop_words = set(stopwords.words('portuguese'))
 
-def classify_intent(post_content):
+    for post in posts:
+        words = nltk.word_tokenize(post['content'])
+        words_cleaned = [word.lower() for word in words if word.isalnum() and word.lower() not in stop_words]
+        all_words.extend(words_cleaned)
+
+    # Contar as palavras mais comuns
+    word_freq = Counter(all_words)
+    top_words = [word for word, freq in word_freq.most_common(10)]
+
+    return top_words
+
+def determine_intent(post):
     """
-    Classifica a intenção do post com base no conteúdo.
+    Determina a intenção do post com base no conteúdo analisado.
+    Pode ser informativa, comercial, transacional, ou indeterminada.
     """
-    informativa_keywords = ['como', 'guia', 'dicas', 'informações', 'entenda', 'aprenda']
-    transacional_keywords = ['compre', 'adquira', 'oferta', 'produto', 'promoção']
-    comercial_keywords = ['avaliação', 'produto', 'preço', 'serviço', 'comparativo']
-
-    post_tokens = tokenize_and_remove_stopwords(post_content)
-
-    if any(keyword in post_tokens for keyword in transacional_keywords):
+    content = post['content'].lower()
+    if any(word in content for word in ['comprar', 'adquirir', 'assinar', 'emitir']):
         return 'Transacional'
-    elif any(keyword in post_tokens for keyword in comercial_keywords):
+    elif any(word in content for word in ['benefícios', 'vantagens', 'custo', 'preço', 'serviços']):
         return 'Comercial'
-    elif any(keyword in post_tokens for keyword in informativa_keywords):
+    elif any(word in content for word in ['como', 'dicas', 'informações', 'guia', 'tutorial']):
         return 'Informativa'
     else:
         return 'Indeterminado'
 
-def classify_funnel_stage(post_content):
+def determine_funnel_stage(post):
     """
-    Classifica o estágio do funil de vendas com base no conteúdo.
+    Determina o estágio do funil de vendas com base no conteúdo do post.
+    Pode ser topo do funil (ToFu), meio do funil (MoFu) ou fundo do funil (BoFu).
     """
-    topo_keywords = ['o que é', 'dicas', 'introdução', 'guia', 'começar']
-    meio_keywords = ['como', 'benefícios', 'vantagens', 'processo', 'melhor']
-    fundo_keywords = ['compre', 'adquira', 'serviço', 'produto', 'contrate']
-
-    post_tokens = tokenize_and_remove_stopwords(post_content)
-
-    if any(keyword in post_tokens for keyword in fundo_keywords):
-        return 'Fundo do Funil (BoFu)'
-    elif any(keyword in post_tokens for keyword in meio_keywords):
-        return 'Meio do Funil (MoFu)'
-    elif any(keyword in post_tokens for keyword in topo_keywords):
+    content = post['content'].lower()
+    if any(word in content for word in ['como', 'dicas', 'entenda', 'informações', 'guia']):
         return 'Topo do Funil (ToFu)'
+    elif any(word in content for word in ['melhorar', 'otimizar', 'eficiência', 'soluções']):
+        return 'Meio do Funil (MoFu)'
+    elif any(word in content for word in ['comprar', 'adquirir', 'assinar', 'contratar']):
+        return 'Fundo do Funil (BoFu)'
     else:
         return 'Indeterminado'
 
 def analyze_posts(posts):
     """
-    Analisa os posts para extrair tópicos, classificar intenção e estágio do funil.
+    Faz a análise dos posts e retorna os tópicos principais, intenção e estágio do funil.
     """
-    results = []
-    for post in posts:
-        post_content = clean_html_content(post['content'])
-        top_topics = extract_topics([post])[0]  # Extrair tópicos para o post atual
-        intent = classify_intent(post_content)  # Classificar a intenção
-        funnel_stage = classify_funnel_stage(post_content)  # Classificar estágio do funil
+    analyzed_results = []
 
-        results.append({
-            "title": post['title'],
-            "top_topics": top_topics,
-            "intent": intent,
-            "funnel_stage": funnel_stage
+    for post in posts:
+        top_topics = extract_topics([post])  # extrair tópicos de cada post individualmente
+        intent = determine_intent(post)
+        funnel_stage = determine_funnel_stage(post)
+
+        analyzed_results.append({
+            'title': post['title'],
+            'top_topics': top_topics,
+            'intent': intent,
+            'funnel_stage': funnel_stage
         })
-    return results
+
+    return analyzed_results

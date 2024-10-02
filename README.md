@@ -22,7 +22,7 @@ O Blog Content Analyzer é um aplicativo que permite extrair posts de um blog Wo
 ### 1. Clonar o Repositório
 Primeiro, clone este repositório em sua máquina local:
 ```bash
-git clone https://github.com/seu-usuario/blog-content-analyzer.git
+git clone https://github.com/emanuellvieira/wp-blog-analyzer-v1.git
 ```
 
 ### 2. Instalar Dependências

@@ -1,9 +1,17 @@
 from bs4 import BeautifulSoup
+import re
 
-def clean_html_content(html_content):
+def clean_html(raw_html):
     """
-    Remove tags HTML e retorna o texto limpo.
+    Remove tags HTML e retorna apenas o texto limpo.
     """
-    soup = BeautifulSoup(html_content, "html.parser")
-    cleaned_text = soup.get_text(separator=" ")  # Extrai o texto e separa por espaço
-    return cleaned_text.strip()
+    soup = BeautifulSoup(raw_html, "html.parser")
+    return soup.get_text()
+
+def clean_text(text):
+    """
+    Limpa o texto removendo caracteres especiais, múltiplos espaços e novas linhas.
+    """
+    text = re.sub(r'\s+', ' ', text)  # Remove múltiplos espaços
+    text = text.strip()  # Remove espaços em branco no início e no fim
+    return text

@@ -3,10 +3,12 @@ from tqdm import tqdm
 from app.extractor import get_all_blog_posts
 from app.analysis import analyze_posts
 from app.helpers import setup_nltk
+import json
 
 # Configurar e baixar pacotes do NLTK
 setup_nltk()
 
+# Função para salvar o resultado em CSV
 def save_to_csv(results, filename="output.csv"):
     """
     Função para salvar os resultados da análise em um arquivo CSV.
@@ -27,13 +29,20 @@ def save_to_csv(results, filename="output.csv"):
     else:
         print("Nenhum dado disponível para salvar.")
 
-if __name__ == "__main__":    
-    blog_url = "https://seu-blog.com"  # Ou a URL do blog que deseja analisar
-    print("Extraindo posts do blog...")
+# Carregar a URL do blog do config.json
+def load_config():
+    with open('config.json', 'r') as config_file:
+        config = json.load(config_file)
+    return config['blog_url']
 
-    # Extrair todos os posts
+if __name__ == "__main__":
+    # Carregar URL do blog a partir do config.json
+    blog_url = load_config()
+    print(f"Extraindo posts do blog da URL: {blog_url}")
+    
+    # Extrair todos os posts do blog
     posts = get_all_blog_posts(blog_url)
-
+    
     if posts:
         print(f"Total de posts encontrados: {len(posts)}")
         print("Analisando posts...")
