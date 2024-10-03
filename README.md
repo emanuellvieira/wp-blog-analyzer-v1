@@ -14,28 +14,36 @@ O Blog Content Analyzer é um aplicativo que permite extrair posts de um blog Wo
 - **Estágio do Funil**: Determina se o conteúdo está no topo (ToFu), meio (MoFu) ou fundo (BoFu) do funil de vendas.
 
 ## Requisitos
-- **Python 3.8+**
-- **Bibliotecas Necessárias**: As bibliotecas podem ser instaladas a partir do arquivo `requirements.txt`. O projeto faz uso de `requests`, `beautifulsoup4`, `nltk`, `tqdm` e outras dependências.
 
-## Instalação e Uso
+- Python 3.8 ou superior
+- pip (Python package installer)
+- [Microsoft Visual C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) (necessário apenas para Windows)
 
-### 1. Clonar o Repositório
-Primeiro, clone este repositório em sua máquina local:
-```bash
-git clone https://github.com/emanuellvieira/wp-blog-analyzer-v1.git
-```
+### Instruções de Instalação (Windows)
 
-### 2. Instalar Dependências
+1. **Instalar Microsoft Visual C++ Build Tools**:
+   - Acesse o [site oficial](https://visualstudio.microsoft.com/visual-cpp-build-tools/) e baixe o instalador.
+   - Durante a instalação, selecione **"Desktop development with C++"** e siga as instruções.
+
+2. **Clonar o Repositório**
+    Primeiro, clone este repositório em sua máquina local:
+    ```bash
+    git clone https://github.com/emanuellvieira/wp-blog-analyzer-v1.git
+    ```
+
+3. **Instalar as Dependências**:
+- Após instalar o Visual C++ Build Tools, rode o comando abaixo para instalar as dependências do projeto:
 Navegue até o diretório do projeto e instale as dependências:
 ```bash
-cd blog-content-analyzer
-pip install -r requirements.txt
-```
+        cd blog-content-analyzer
+        pip install -r requirements.txt
+    ```
 
-### 3. Configuração do NLTK
+
+### 4. Configuração do NLTK
 Ao executar o script pela primeira vez, o NLTK irá baixar os pacotes necessários, como `stopwords` e `punkt`.
 
-### 4. Executar o Aplicativo
+### 5. Executar o Aplicativo
 Para iniciar a análise do blog, basta executar o arquivo `main.py`. O app vai extrair todos os posts do blog e gerar o arquivo `output.csv` com os resultados da análise.
 
 ```bash

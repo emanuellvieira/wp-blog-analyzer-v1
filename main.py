@@ -1,70 +1,95 @@
-import csv
+import json
 from tqdm import tqdm
 from app.extractor import get_all_blog_posts
 from app.analysis import analyze_posts
 from app.helpers import setup_nltk
-import json
+from app.output import save_to_csv, save_report
+
+# Função para carregar o arquivo config.json
+def load_config(config_file="config.json"):
+    """
+    Função para carregar o arquivo de configuração config.json.
+    """
+    try:
+        with open(config_file, 'r', encoding='utf-8') as file:
+            config = json.load(file)
+        return config
+    except FileNotFoundError:
+        print(f"Arquivo {config_file} não encontrado.")
+        return {}
+    except json.JSONDecodeError as e:
+        print(f"Erro ao decodificar {config_file}: {e}")
+        return {}
+
+# Função para gerar o relatório global
+def generate_report(results):
+    """
+    Gera um relatório com base na análise dos posts.
+    """
+    total_posts = len(results)
+    funnel_distribution = {}
+    top_intents = {}
+    top_topics = {}
+
+    for result in results:
+        funnel_stage = result.get('funnel_stage', 'Indeterminado')
+        intent = result.get('intent', 'Indeterminado')
+        topics = result.get('top_topics', [])
+
+        if funnel_stage in funnel_distribution:
+            funnel_distribution[funnel_stage] += 1
+        else:
+            funnel_distribution[funnel_stage] = 1
+
+        if intent in top_intents:
+            top_intents[intent] += 1
+        else:
+            top_intents[intent] = 1
+
+        for topic in topics:
+            if topic in top_topics:
+                top_topics[topic] += 1
+            else:
+                top_topics[topic] = 1
+
+    report = {
+        "total_posts": total_posts,
+        "funnel_distribution": funnel_distribution,
+        "top_intents": top_intents,
+        "top_topics": sorted(top_topics.items(), key=lambda x: x[1], reverse=True)
+    }
+
+    return report
 
 # Configurar e baixar pacotes do NLTK
 setup_nltk()
 
-# Função para salvar o resultado em CSV
-def save_to_csv(results, filename="output.csv"):
-    """
-    Função para salvar os resultados da análise em um arquivo CSV.
-    
-    Args:
-        results (list): Lista de dicionários contendo os dados analisados.
-        filename (str): Nome do arquivo CSV.
-    """
-    if results:
-        keys = results[0].keys()  # Usar as chaves do primeiro resultado como cabeçalhos
-
-        with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=keys)
-            writer.writeheader()
-            writer.writerows(results)
-        
-        print(f"Arquivo CSV salvo como {filename}")
-    else:
-        print("Nenhum dado disponível para salvar.")
-
-# Carregar a URL do blog do config.json
-def load_config():
-    with open('config.json', 'r') as config_file:
-        config = json.load(config_file)
-    return config['blog_url']
-
 if __name__ == "__main__":
-    # Carregar URL do blog a partir do config.json
-    blog_url = load_config()
-    print(f"Extraindo posts do blog da URL: {blog_url}")
-    
-    # Extrair todos os posts do blog
-    posts = get_all_blog_posts(blog_url)
-    
-    if posts:
-        print(f"Total de posts encontrados: {len(posts)}")
-        print("Analisando posts...")
+    # Carregar configurações do arquivo config.json
+    config = load_config()
+    blog_url = config.get("blog_url")
+    company_context = config.get("company_context")
+    icp = config.get("ideal_customer_profile")
 
-        # Mostrar barra de progresso com tqdm
-        results = []
-        for result in tqdm(analyze_posts(posts)):
-            results.append(result)
+    if not blog_url or not company_context or not icp:
+        print("Configuração inválida. Verifique o arquivo config.json.")
+    else:
+        print("Extraindo posts do blog...")
+        # Passando o config para a função get_all_blog_posts
+        posts = get_all_blog_posts(blog_url, config)
 
-        # Verificar se há resultados de análise
-        if results:
-            # Exibir os resultados no terminal
-            for result in results:
-                print(f"Título: {result['title']}")
-                print(f"Tópicos Principais: {result['top_topics']}")
-                print(f"Intenção: {result['intent']}")
-                print(f"Nível do Funil: {result['funnel_stage']}")
-                print("\n")
+        if posts:
+            print(f"Total de posts encontrados: {len(posts)}")
+            print("Analisando posts...")
+
+            # Mostrar barra de progresso com tqdm
+            results = list(tqdm(analyze_posts(posts, company_context, icp), total=len(posts)))
 
             # Salvar os resultados no CSV
             save_to_csv(results)
+
+            # Criar e salvar o relatório global
+            report = generate_report(results)
+            save_report(report)
         else:
-            print("Nenhuma análise realizada.")
-    else:
-        print("Nenhum post encontrado.")
+            print("Nenhum post encontrado.")

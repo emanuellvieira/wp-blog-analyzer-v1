@@ -5,3 +5,8 @@ matplotlib
 nltk
 scikit-learn
 tqdm
+transformers
+torch
+# hdbscan requires Microsoft Visual C++ Build Tools on Windows
+hdbscan>=0.8.29
+bertopic
